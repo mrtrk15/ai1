@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Planner</title>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 60px;
+            margin-top: 20px;
+        }
+
+        .home-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: green;
+            color: white;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .container {
+            width: 90%;
+            margin: 30px auto;
+            display: flex;
+            justify-content: space-between;
+            gap: 40px;
+        }
+
+        .card {
+            width: 48%;
+            border: 3px solid #1f2d4d;
+            border-radius: 40px;
+            padding: 40px;
+            background: #f9f9f9;
+        }
+
+        .card h2 {
+            text-align: center;
+            font-size: 40px;
+            margin-bottom: 30px;
+        }
+
+        .field {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+            font-size: 24px;
+        }
+
+        .field input {
+            width: 100px;
+            height: 40px;
+            border-radius: 10px;
+            border: 2px solid #1f2d4d;
+        }
+
+        .btn {
+            display: block;
+            margin: 30px auto 0;
+            padding: 15px 50px;
+            font-size: 28px;
+            background: #4a6fb3;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+        }
+
+        .text {
+            font-size: 26px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+
+<body>
+
+<a href="/">
+    <button class="home-btn">🏠</button>
+</a>
+
+<h1>Planner</h1>
+
+<div class="container">
+
+    <!-- LEFT -->
+    <div class="card">
+        <h2>Plan your Week</h2>
+
+        <div class="field">Monday: <input id="mon" type="number"></div>
+        <div class="field">Tuesday: <input id="tue" type="number"></div>
+        <div class="field">Wednesday: <input id="wed" type="number"></div>
+        <div class="field">Thursday: <input id="thu" type="number"></div>
+        <div class="field">Friday: <input id="fri" type="number"></div>
+        <div class="field">Saturday: <input id="sat" type="number"></div>
+        <div class="field">Sunday: <input id="sun" type="number"></div>
+
+        <button class="btn" onclick="validatePlan()">Validate Plan</button>
+    </div>
+    <div style="text-align:center; margin-top:20px;">
+    <label>From: </label>
+    <input type="date" id="fromDate">
+
+    <label>To: </label>
+    <input type="date" id="toDate">
+</div>
+
+    <!-- RIGHT -->
+    <div class="card">
+        <h2>Planner Result</h2>
+
+        <div class="text" id="total">Total Planned Hours:</div>
+        <div class="text" id="target">Recommended Target Hours:</div>
+        <div class="text" id="status">Status:</div>
+
+        <button class="btn" onclick="fixPlan()">Fix Plan</button>
+    </div>
+
+</div>
+
+<script>
+let plannerData = {};
+let generatedSchedule = [];
+
+function validatePlan(){
+
+    plannerData = {
+        Monday: Number(mon.value) || 0,
+        Tuesday: Number(tue.value) || 0,
+        Wednesday: Number(wed.value) || 0,
+        Thursday: Number(thu.value) || 0,
+        Friday: Number(fri.value) || 0,
+        Saturday: Number(sat.value) || 0,
+        Sunday: Number(sun.value) || 0
+    };
+
+    let total = Object.values(plannerData).reduce((a,b)=>a+b,0);
+    let target = 30;
+
+    document.getElementById("total").innerText =
+        "Total Planned Hours: " + total;
+
+    document.getElementById("target").innerText =
+        "Recommended Target Hours: " + target;
+
+    document.getElementById("status").innerText =
+        "Status: " + (total >= target ? "Good Plan ✅" : "Need Improvement ⚠️");
+}
+
+// 🔥 Generate full schedule (date-wise)
+function fixPlan(){
+
+    let from = document.getElementById("fromDate").value;
+    let to = document.getElementById("toDate").value;
+
+    if(!from || !to){
+        alert("Please select date range");
+        return;
+    }
+
+    let start = new Date(from);
+    let end = new Date(to);
+
+    let days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+
+    generatedSchedule = [];
+
+    while(start <= end){
+
+        let dayName = days[start.getDay()];
+
+        generatedSchedule.push({
+            date: new Date(start),
+            day: dayName,
+            hours: plannerData[dayName] || 0
+        });
+
+        start.setDate(start.getDate() + 1);
+    }
+
+    // Save full schedule
+    localStorage.setItem("fullSchedule", JSON.stringify(generatedSchedule));
+
+    alert("✅ Your schedule is made successfully");
+}
+</script>
+
+</body>
+</html>

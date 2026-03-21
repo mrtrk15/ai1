@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Academic Details</title>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+        }
+
+        .container {
+            width: 80%;
+            margin: 50px auto;
+            padding: 40px;
+            border: 3px solid #1f2d4d;
+            border-radius: 40px;
+            background: #f9f9f9;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 50px;
+            margin-bottom: 40px;
+        }
+
+        .form {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 50px;
+        }
+
+        .column {
+            width: 45%;
+        }
+
+        .field {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+            font-size: 22px;
+        }
+
+        .field input {
+            width: 120px;
+            height: 40px;
+            border-radius: 10px;
+            border: 2px solid #1f2d4d;
+            padding: 5px;
+        }
+
+        .predict-btn {
+            display: block;
+            margin: 50px auto 0;
+            padding: 15px 60px;
+            font-size: 28px;
+            background: #4a6fb3;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+        }
+
+        .predict-btn:hover {
+            background: #3a5a95;
+        }
+
+        .home-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: green;
+            color: white;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+<a href="/">
+    <button class="home-btn">🏠</button>
+</a>
+
+<div class="container">
+
+    <h1>Academic Details</h1>
+
+    <div class="form">
+
+        <!-- LEFT -->
+        <div class="column">
+            <div class="field">
+                Previous CGPA:
+                <input type="number" id="prevCgpa">
+            </div>
+
+            <div class="field">
+                Weekly Study Hours:
+                <input type="number" id="studyHours">
+            </div>
+
+            <div class="field">
+                Attendance (%):
+                <input type="number" id="attendance">
+            </div>
+
+            <div class="field">
+                Internal Marks:
+                <input type="number" id="internal">
+            </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="column">
+            <div class="field">
+                Backlogs:
+                <input type="number" id="backlogs">
+            </div>
+
+            <div class="field">
+                Screen Time:
+                <input type="number" id="screenTime">
+            </div>
+
+            <div class="field">
+                Revision Frequency:
+                <input type="number" id="revision">
+            </div>
+
+            <div class="field">
+                Problem Solving:
+                <input type="number" id="problemSolving">
+            </div>
+        </div>
+
+    </div>
+
+    <button class="predict-btn" onclick="goToResult()">Predict</button>
+
+</div>
+
+<script>
+async function goToResult(){
+
+    let btn = document.querySelector(".predict-btn");
+
+    let data = {
+        prev_cgpa: parseFloat(document.getElementById("prevCgpa").value),
+        study_hours: parseFloat(document.getElementById("studyHours").value),
+        attendance: parseFloat(document.getElementById("attendance").value),
+        internal: parseFloat(document.getElementById("internal").value),
+        backlogs: parseFloat(document.getElementById("backlogs").value),
+        screen_time: parseFloat(document.getElementById("screenTime").value),
+        revision: parseFloat(document.getElementById("revision").value),
+        problem_solving: parseFloat(document.getElementById("problemSolving").value)
+    };
+
+    // Validation
+    for(let key in data){
+        if(isNaN(data[key])){
+            alert("Please fill all fields properly");
+            return;
+        }
+    }
+
+    try{
+
+        btn.innerText = "Predicting...";
+        btn.disabled = true;
+
+        let response = await fetch("/predict_api", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        });
+
+        let result = await response.json();
+
+        localStorage.setItem("resultData", JSON.stringify(result));
+
+        window.location.href = "/result";
+
+    }catch(err){
+        alert("Error occurred!");
+        console.error(err);
+    }
+}
+</script>
+
+</body>
+</html>

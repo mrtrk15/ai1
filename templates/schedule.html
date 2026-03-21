@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Schedule</title>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            text-align: center;
+        }
+
+        h2 {
+            margin-top: 30px;
+        }
+
+        select {
+            padding: 5px;
+            font-size: 16px;
+            margin: 5px;
+        }
+
+        .calendar {
+            width: 80%;
+            margin: 30px auto;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        .calendar th {
+            background: pink;
+            padding: 15px;
+        }
+
+        .calendar td {
+            padding: 20px;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .calendar td:hover {
+            background: lightblue;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin-top: 20px;
+            border-radius: 10px;
+            border: none;
+            background: black;
+            color: white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>
+    YOUR SCHEDULE FOR 
+    <select id="month"></select>
+    <select id="year"></select>
+</h2>
+
+<table class="calendar" id="calendar"></table>
+
+<br>
+
+<a href="/">
+    <button>Home</button>
+</a>
+
+<script>
+const monthNames = [
+    "January","February","March","April","May","June",
+    "July","August","September","October","November","December"
+];
+
+const monthDropdown = document.getElementById("month");
+const yearDropdown = document.getElementById("year");
+const calendar = document.getElementById("calendar");
+
+// Fill months
+monthNames.forEach((m, i) => {
+    let opt = document.createElement("option");
+    opt.value = i;
+    opt.text = m;
+    monthDropdown.appendChild(opt);
+});
+
+// Fill years
+for (let y = 2000; y <= 2035; y++) {
+    let opt = document.createElement("option");
+    opt.value = y;
+    opt.text = y;
+    yearDropdown.appendChild(opt);
+};
+
+// Set current date
+const today = new Date();
+monthDropdown.value = today.getMonth();
+yearDropdown.value = today.getFullYear();
+
+function generateCalendar(month, year) {
+
+    month = parseInt(month);
+    year = parseInt(year);
+
+    calendar.innerHTML = "";
+
+    const days = ["SUN","MON","TUE","WED","THU","FRI","SAT"];
+
+    // Header
+    let header = document.createElement("tr");
+    days.forEach(d => {
+        let th = document.createElement("th");
+        th.innerText = d;
+        header.appendChild(th);
+    });
+    calendar.appendChild(header);
+
+    let firstDay = new Date(year, month, 1).getDay();
+    let totalDays = new Date(year, month + 1, 0).getDate();
+
+    let row = document.createElement("tr");
+
+    // Empty cells before first day
+    for (let i = 0; i < firstDay; i++) {
+        row.appendChild(document.createElement("td"));
+    }
+
+    for (let day = 1; day <= totalDays; day++) {
+
+        let cell = document.createElement("td");
+        cell.innerText = day;
+
+        // 🔥 FIXED FLASK ROUTE
+        cell.onclick = () => {
+            window.location.href = "/sessions?day=" + day;
+        };
+
+        row.appendChild(cell);
+
+        if (row.children.length === 7) {
+            calendar.appendChild(row);
+            row = document.createElement("tr");
+        }
+    }
+
+    // Fill remaining cells
+    if (row.children.length > 0) {
+        while (row.children.length < 7) {
+            row.appendChild(document.createElement("td"));
+        }
+        calendar.appendChild(row);
+    }
+}
+
+// Initial load
+generateCalendar(monthDropdown.value, yearDropdown.value);
+
+// On change
+monthDropdown.addEventListener("change", () => {
+    generateCalendar(monthDropdown.value, yearDropdown.value);
+});
+
+yearDropdown.addEventListener("change", () => {
+    generateCalendar(monthDropdown.value, yearDropdown.value);
+});
+</script>
+
+</body>
+</html>

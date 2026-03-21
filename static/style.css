@@ -1,0 +1,65 @@
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #f0f0f0;
+    margin: 0;
+    text-align: center;
+}
+
+h1, h2 {
+    margin-top: 30px;
+}
+
+.container {
+    margin-top: 60px;
+}
+
+.card {
+    display: inline-block;
+    padding: 40px 80px;
+    margin: 30px;
+    border-radius: 50px;
+    border: 5px solid yellow;
+    background: white;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.card:hover {
+    transform: scale(1.05);
+}
+
+.button {
+    padding: 12px 25px;
+    border-radius: 25px;
+    border: none;
+    background: black;
+    color: white;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+/* Calendar Styling */
+.calendar {
+    width: 80%;
+    margin: 30px auto;
+    border-collapse: collapse;
+    background: white;
+}
+
+.calendar th {
+    background: pink;
+    padding: 15px;
+}
+
+.calendar td {
+    padding: 20px;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.calendar td:hover {
+    background: lightblue;
+}

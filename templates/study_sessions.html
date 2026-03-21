@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Study Sessions</title>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            text-align: center;
+        }
+
+        .top {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            font-size: 22px;
+        }
+
+        input {
+            padding: 5px;
+            border-radius: 8px;
+            border: 2px solid #1f2d4d;
+        }
+
+        .session-box {
+            border: 3px dashed #1f2d4d;
+            border-radius: 30px;
+            padding: 25px;
+            margin: 30px;
+            background: #f9f9f9;
+            text-align: left;
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .buttons {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 2px solid #1f2d4d;
+            background: white;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        .add-btn {
+            padding: 12px 30px;
+            font-size: 18px;
+            margin: 20px;
+        }
+
+        #warning {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>Study Sessions</h2>
+<h3 id="selectedDate"></h3>
+
+<!-- TOP HOURS -->
+<div class="top">
+    <div>
+        TOTAL STUDY HOURS:
+        <input id="totalHours" readonly>
+    </div>
+
+    <div>
+        PLANNED STUDY HOURS:
+        <input id="plannedHours" readonly>
+    </div>
+</div>
+
+<p id="warning"></p>
+
+<div id="sessions-container"></div>
+
+<button class="add-btn" onclick="addSession()">+ Add Session</button>
+
+<script>
+let sessionCount = 0;
+
+// 📅 Get selected day
+const params = new URLSearchParams(window.location.search);
+const day = params.get("day");
+
+// Show date
+if(day){
+    document.getElementById("selectedDate").innerText = "Selected Date: " + day;
+}
+
+// 🔥 Get full schedule from planner
+let fullSchedule = JSON.parse(localStorage.getItem("fullSchedule")) || [];
+
+let today = new Date();
+let selectedDate = new Date(today.getFullYear(), today.getMonth(), day);
+
+// 🔍 Find matching date
+let matched = fullSchedule.find(item => {
+    let d = new Date(item.date);
+    return d.getDate() == selectedDate.getDate() &&
+           d.getMonth() == selectedDate.getMonth() &&
+           d.getFullYear() == selectedDate.getFullYear();
+});
+
+let totalHours = matched ? matched.hours : 0;
+document.getElementById("totalHours").value = totalHours;
+
+
+// ➕ Add session
+function addSession(){
+    sessionCount++;
+
+    let div = document.createElement("div");
+    div.className = "session-box";
+
+    div.innerHTML = `
+        <h3>Session ${sessionCount}</h3>
+
+        <div class="row">
+            <div>
+                Timings: 
+                <input type="time" onchange="updateHours()"> 
+                to 
+                <input type="time" onchange="updateHours()">
+            </div>
+
+            <div class="row">
+                <span>Upload:</span>
+
+                <div>
+                    <input type="file" accept=".pdf" onchange="countDocs(this)">
+                    <div class="docCount">0</div>
+                </div>
+
+                <div>
+                    <div class="circle">▶</div>
+                    <div class="videoCount">0</div>
+                </div>
+
+                <input type="text" placeholder="paste video link">
+                <button onclick="addVideo(this)">Add video</button>
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button onclick="startStudy(this)">Start Study</button>
+            <button onclick="markStudied(this)">Mark as studied</button>
+        </div>
+    `;
+
+    document.getElementById("sessions-container").appendChild(div);
+}
+
+
+// 📊 Calculate planned hours
+function updateHours(){
+    let total = 0;
+
+    document.querySelectorAll(".session-box").forEach(box => {
+        let times = box.querySelectorAll("input[type='time']");
+
+        if(times[0].value && times[1].value){
+            let s = times[0].value.split(":");
+            let e = times[1].value.split(":");
+
+            let start = (+s[0])*60 + (+s[1]);
+            let end = (+e[0])*60 + (+e[1]);
+
+            if(end > start){
+                total += (end - start)/60;
+            }
+        }
+    });
+
+    document.getElementById("plannedHours").value = total.toFixed(2);
+
+    if(total < totalHours){
+        document.getElementById("warning").innerText =
+            "⚠️ Planned hours are less than required. Study more!";
+    } else {
+        document.getElementById("warning").innerText = "";
+    }
+}
+
+
+// 📁 PDF count
+function countDocs(input){
+    let count = input.files.length;
+    input.parentElement.querySelector(".docCount").innerText = count;
+}
+
+
+// 🎥 Video count
+function addVideo(btn){
+    let parent = btn.parentElement;
+    let input = parent.querySelector("input[type='text']");
+    let countDiv = parent.querySelector(".videoCount");
+
+    if(input.value.trim() !== ""){
+        countDiv.innerText = +countDiv.innerText + 1;
+        input.value = "";
+    }
+}
+
+
+// ▶️ Buttons
+function startStudy(btn){
+    btn.innerText = "Studying...";
+    btn.style.background = "lightgreen";
+}
+
+function markStudied(btn){
+    btn.innerText = "Completed";
+    btn.style.background = "lightblue";
+}
+
+
+// First session auto
+addSession();
+</script>
+
+</body>
+</html>
