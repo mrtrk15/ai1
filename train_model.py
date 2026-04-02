@@ -1,23 +1,31 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
-import numpy as np
-import pickle
+import joblib
 
-# Sample dummy dataset (replace later with real data)
-X = np.array([
-    [7.5, 20, 85, 40, 0, 3, 4, 3],
-    [6.0, 10, 70, 30, 2, 5, 2, 2],
-    [8.5, 25, 90, 45, 0, 2, 5, 4],
-    [5.5, 8, 60, 25, 3, 6, 1, 1]
-])
+# Load dataset
+df = pd.read_csv("student_dataset.csv")
 
-y = np.array([8.2, 6.5, 9.0, 5.8])  # CGPA output
+# Features and target
+X = df.drop("final_cgpa", axis=1)
+y = df["final_cgpa"]
 
-# Train model
-model = RandomForestRegressor()
-model.fit(X, y)
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# Model
+model = RandomForestRegressor(n_estimators=100)
+
+# Train
+model.fit(X_train, y_train)
+
+# Accuracy
+score = model.score(X_test, y_test)
+print("Model Accuracy (R2 Score):", score)
 
 # Save model
-with open("model.pkl", "wb") as f:
-    pickle.dump(model, f)
+joblib.dump(model, "model.pkl")
 
-print("✅ Model trained and saved as model.pkl")
+print("Model saved as model.pkl")

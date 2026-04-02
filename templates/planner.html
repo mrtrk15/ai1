@@ -148,7 +148,24 @@ function validatePlan(){
     };
 
     let total = Object.values(plannerData).reduce((a,b)=>a+b,0);
-    let target = 30;
+    // 🔥 GET DATA FROM STORAGE
+
+let inputData = JSON.parse(localStorage.getItem("inputData"));
+let simData = JSON.parse(localStorage.getItem("simulatedData"));
+
+let baseStudyHours;
+
+// Priority: simulation → input
+if(simData && simData.study_hours){
+    baseStudyHours = simData.study_hours;
+} else if(inputData){
+    baseStudyHours = inputData.study_hours;
+} else {
+    baseStudyHours = 3; // fallback
+}
+
+// Weekly target (7 days)
+let target = baseStudyHours;
 
     document.getElementById("total").innerText =
         "Total Planned Hours: " + total;
@@ -156,8 +173,23 @@ function validatePlan(){
     document.getElementById("target").innerText =
         "Recommended Target Hours: " + target;
 
+    let minTarget = target * 0.9;
+let maxTarget = target * 1.1;
+
+let status;
+
+if(total >= minTarget && total <= maxTarget){
+    status = "Balanced Plan ✅";
+}
+else if(total < minTarget){
+    status = "Under Planned ⚠️";
+}
+else{
+    status = "Overloaded Plan ❌";
+}
+
     document.getElementById("status").innerText =
-        "Status: " + (total >= target ? "Good Plan ✅" : "Need Improvement ⚠️");
+        "Status: " + status;
 }
 
 // 🔥 Generate full schedule (date-wise)

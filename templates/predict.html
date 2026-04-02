@@ -186,9 +186,17 @@ async function goToResult(){
 
         let result = await response.json();
 
-        localStorage.setItem("resultData", JSON.stringify(result));
+        // Save data
+localStorage.setItem("resultData", JSON.stringify(result));
+localStorage.setItem("inputData", JSON.stringify(data));
 
-        window.location.href = "/result";
+// Debug (important)
+console.log("Saved inputData:", localStorage.getItem("inputData"));
+
+// Small delay to ensure storage completes
+setTimeout(() => {
+    window.location.href = "/result";
+}, 100);
 
     }catch(err){
         alert("Error occurred!");

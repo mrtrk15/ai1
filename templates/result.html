@@ -51,7 +51,14 @@
         .status {
             text-align: center;
             font-size: 28px;
-            margin-top: 40px;
+            margin-top: 20px;
+        }
+
+        .category {
+            text-align: center;
+            font-size: 24px;
+            margin-top: 10px;
+            font-weight: bold;
         }
 
         .row {
@@ -94,8 +101,8 @@
             cursor: pointer;
         }
 
-        .text {
-            font-size: 22px;
+        .list {
+            font-size: 20px;
             margin: 10px 0;
         }
     </style>
@@ -111,24 +118,22 @@
 
     <div class="grid">
 
-        <!-- CGPA -->
+        <!-- STATUS -->
         <div class="card">
-            <h2>📊 Current Academic Status</h2>
-            <div class="status" id="cgpaDisplay">
-                Predicted CGPA: -
-            </div>
+            <h2>📊 Academic Status</h2>
+            <div class="status" id="cgpaDisplay">CGPA: -</div>
+            <div class="category" id="categoryDisplay"></div>
         </div>
 
-        <!-- Reasons -->
+        <!-- REASONS -->
         <div class="card">
-            <h2>Impact Analysis</h2>
-            <div class="text" id="reason1"></div>
-            <div class="text" id="reason2"></div>
+            <h2>📉 Impact Analysis</h2>
+            <div id="reasonsList"></div>
         </div>
 
-        <!-- Simulation -->
+        <!-- SIMULATION -->
         <div class="card">
-            <h2>What-If Simulation</h2>
+            <h2>🔄 What-If Simulation</h2>
 
             <div class="row">
                 Attendance:
@@ -142,16 +147,15 @@
 
             <button class="simulate-btn" onclick="simulate()">Simulate</button>
 
-            <div class="text" id="simResult">
+            <div class="list" id="simResult">
                 Simulated CGPA: -
             </div>
         </div>
 
-        <!-- Suggestions -->
+        <!-- SUGGESTIONS -->
         <div class="card">
-            <h2>Personal Suggestions</h2>
-            <div class="text" id="suggestion1"></div>
-            <div class="text" id="suggestion2"></div>
+            <h2>💡 Suggestions</h2>
+            <div id="suggestionsList"></div>
         </div>
 
     </div>
@@ -164,7 +168,7 @@
 
 <script>
 
-// Load result from localStorage
+// Load data
 let data = JSON.parse(localStorage.getItem("resultData"));
 
 if(data){
@@ -172,37 +176,80 @@ if(data){
     document.getElementById("cgpaDisplay").innerText =
         "Predicted CGPA: " + data.predicted_cgpa;
 
-    document.getElementById("reason1").innerText =
-        "Reason: " + data.reason1;
+    let categoryEl = document.getElementById("categoryDisplay");
+    categoryEl.innerText = data.category;
 
-    document.getElementById("reason2").innerText =
-        "Reason: " + data.reason2;
+    if(data.category === "Excellent") categoryEl.style.color = "green";
+    else if(data.category === "Good") categoryEl.style.color = "blue";
+    else if(data.category === "Average") categoryEl.style.color = "orange";
+    else categoryEl.style.color = "red";
 
-    document.getElementById("suggestion1").innerText =
-        "Suggestion: " + data.suggestion1;
+    let reasonsDiv = document.getElementById("reasonsList");
+    data.reasons.forEach(r => {
+        let p = document.createElement("p");
+        p.className = "list";
+        p.innerText = "• " + r;
+        reasonsDiv.appendChild(p);
+    });
 
-    document.getElementById("suggestion2").innerText =
-        "Suggestion: " + data.suggestion2;
+    let sugDiv = document.getElementById("suggestionsList");
+    data.suggestions.forEach(s => {
+        let p = document.createElement("p");
+        p.className = "list";
+        p.innerText = "• " + s;
+        sugDiv.appendChild(p);
+    });
 }
 
 
-// Simulation logic
+// ✅ SIMULATION
 function simulate(){
 
-    let attendance = parseFloat(document.getElementById("simAttendance").value);
-    let study = parseFloat(document.getElementById("simStudy").value);
+    let base = JSON.parse(localStorage.getItem("inputData"));
 
-    if(isNaN(attendance) || isNaN(study)){
-        alert("Enter values for simulation");
+    if(!base){
+        alert("No base data found");
         return;
     }
 
-    let cgpa = (attendance * 0.02) + (study * 0.3);
+    let newAttendance = parseFloat(document.getElementById("simAttendance").value);
+    let newStudy = parseFloat(document.getElementById("simStudy").value);
+
+    if(isNaN(newAttendance) || isNaN(newStudy)){
+        alert("Enter values");
+        return;
+    }
+
+    let sim = {...base};
+    sim.attendance = newAttendance;
+    sim.study_hours = newStudy;
+
+    let attendance_score = sim.attendance / 100;
+    let study_score = sim.study_hours / 24;
+    let internal_score = sim.internal / 50;
+    let revision_score = sim.revision / 5;
+    let problem_score = sim.problem_solving / 5;
+
+    let cgpa = (
+        (attendance_score * 2.5) +
+        (study_score * 2.5) +
+        (internal_score * 2.5) +
+        (revision_score * 1.5) +
+        (problem_score * 1.5) -
+        (sim.backlogs * 0.5) -
+        (sim.screen_time * 0.1)
+    );
+
+    cgpa = (cgpa * 0.7) + (sim.prev_cgpa * 0.3);
 
     cgpa = Math.max(0, Math.min(10, cgpa));
 
     document.getElementById("simResult").innerText =
         "Simulated CGPA: " + cgpa.toFixed(2);
+    localStorage.setItem("simulatedData", JSON.stringify({
+    study_hours: newStudy,
+    attendance: newAttendance
+}));
 }
 
 

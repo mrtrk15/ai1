@@ -5,157 +5,173 @@
 
     <style>
         body {
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI';
             background: #f5f5f5;
-            margin: 0;
+        }
+
+        .container {
+            width: 80%;
+            margin: 50px auto;
+        }
+
+        .card {
+            border: 3px solid #1f2d4d;
+            border-radius: 30px;
+            padding: 30px;
+            margin-bottom: 20px;
+            background: #fff;
         }
 
         h1 {
             text-align: center;
-            margin-top: 30px;
-            font-size: 45px;
         }
 
-        .home-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: green;
-            color: white;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            font-size: 24px;
-            border: none;
+        .btn {
+            padding: 10px 30px;
+            font-size: 18px;
+            margin-top: 15px;
             cursor: pointer;
-        }
-
-        .container {
-            width: 90%;
-            margin: 40px auto;
-        }
-
-        .grid {
-            display: flex;
-            justify-content: space-between;
-            gap: 40px;
-        }
-
-        .card {
-            width: 48%;
-            border: 3px solid #1f2d4d;
-            border-radius: 40px;
-            padding: 30px;
-            background: #f9f9f9;
-            min-height: 250px;
-        }
-
-        .card h2 {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .field {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 20px 0;
-            font-size: 22px;
-        }
-
-        .field input {
-            width: 100px;
-            height: 40px;
-            border-radius: 10px;
-            border: 2px solid #1f2d4d;
-        }
-
-        .analyse-btn {
-            display: block;
-            margin: 30px auto 0;
-            padding: 10px 40px;
-            font-size: 22px;
             background: #4a6fb3;
             color: white;
             border: none;
             border-radius: 10px;
-            cursor: pointer;
         }
 
-        .text {
-            font-size: 22px;
-            margin: 15px 0;
+        select {
+            height: 35px;
+            width: 200px;
+            margin-top: 10px;
         }
 
-        .bottom-btn {
-            display: block;
-            margin: 60px auto;
-            padding: 15px 60px;
-            font-size: 28px;
-            background: #4a6fb3;
-            color: white;
-            border: none;
-            border-radius: 15px;
-            cursor: pointer;
+        .result {
+            font-size: 18px;
+            margin-top: 15px;
         }
     </style>
 </head>
 
 <body>
 
-<a href="/">
-    <button class="home-btn">🏠</button>
-</a>
-
-<h1>Learning mode advisor</h1>
-
 <div class="container">
 
-    <div class="grid">
+    <h1>🎯 Learning Mode Advisor</h1>
 
-        <!-- LEFT: Behavioral -->
-        <div class="card">
-            <h2>Behavioral Assessment</h2>
+    <!-- STEP 1 -->
+    <div class="card">
+        <h2>Select Mode</h2>
 
-            <div class="field">
-                Distraction Level (1-5) :
-                <input type="number" min="1" max="5">
-            </div>
+        <select id="mode">
+            <option value="">Select</option>
+            <option value="Online">Online</option>
+            <option value="Offline">Offline</option>
+        </select>
 
-            <div class="field">
-                Self Discipline (1-5):
-                <input type="number" min="1" max="5">
-            </div>
-
-            <button class="analyse-btn" onclick="analyse()">Analyse</button>
-        </div>
-
-        <!-- RIGHT: Result -->
-        <div class="card">
-            <h2>Advisor Result</h2>
-
-            <div class="text">Online Mode Predicted CGPA:</div>
-            <div class="text">Offline Mode Predicted CGPA:</div>
-            <div class="text">Final Recommendation:</div>
-            <div class="text">Recommended Weekly Study Hours:</div>
-        </div>
-
+        <br>
+        <button class="btn" onclick="nextStep()">Next</button>
     </div>
 
-    <button class="bottom-btn" onclick="goToPlanner()">
-        Go to Planner
-    </button>
+    <!-- STEP 2 -->
+    <div class="card" id="step2" style="display:none;">
+        <h2>Behavior Analysis</h2>
+
+        <p>Distraction Level:</p>
+        <select id="distraction">
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+        </select>
+
+        <p>Consistency:</p>
+        <select id="consistency">
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+        </select>
+
+        <br>
+        <button class="btn" onclick="getAdvice()">Get Advice</button>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="card" id="resultBox" style="display:none;"></div>
+
+    <!-- 🔥 GO TO PLANNER BUTTON -->
+    <div style="text-align:center;">
+        <button id="plannerBtn" class="btn" onclick="goToPlanner()" style="display:none;">
+            ➡️ Go to Planner
+        </button>
+    </div>
 
 </div>
 
 <script>
-function analyse(){
-    alert("Analysis complete (connect ML model here)");
+
+let data = JSON.parse(localStorage.getItem("resultData"));
+let selectedMode = "";
+
+// STEP 1
+function nextStep(){
+    selectedMode = document.getElementById("mode").value;
+
+    if(!selectedMode){
+        alert("Please select a mode");
+        return;
+    }
+
+    document.getElementById("step2").style.display = "block";
 }
 
+// STEP 2 → FINAL ADVICE
+function getAdvice(){
+
+    let distraction = document.getElementById("distraction").value;
+    let consistency = document.getElementById("consistency").value;
+
+    let online = data.online_cgpa;
+    let offline = data.offline_cgpa;
+
+    let output = "<h3>📊 CGPA Comparison</h3>";
+    output += "Online: " + online + "<br>";
+    output += "Offline: " + offline + "<br><br>";
+
+    // LOGIC
+    if(selectedMode === "Online"){
+
+        if(distraction === "high"){
+            output += "⚠️ High distraction may reduce performance in Online mode.<br>";
+        }
+
+        if(online < offline){
+            output += "👉 Offline may give better results.<br>";
+        } else {
+            output += "✅ Online mode is suitable for you.<br>";
+        }
+
+    }
+
+    if(selectedMode === "Offline"){
+
+        if(offline < online){
+            output += "👉 Online mode may give better results.<br>";
+        } else {
+            output += "✅ Offline mode is suitable for you.<br>";
+        }
+
+    }
+
+    // SHOW RESULT
+    document.getElementById("resultBox").style.display = "block";
+    document.getElementById("resultBox").innerHTML = output;
+
+    // SHOW PLANNER BUTTON
+    document.getElementById("plannerBtn").style.display = "block";
+}
+
+// NAVIGATION
 function goToPlanner(){
     window.location.href = "/planner";
 }
+
 </script>
 
 </body>
