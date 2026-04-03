@@ -102,23 +102,22 @@
 
 <script>
 let sessionCount = 0;
+let sessionsData = [];
 
 // 📅 Get selected day
 const params = new URLSearchParams(window.location.search);
 const day = params.get("day");
 
-// Show date
 if(day){
     document.getElementById("selectedDate").innerText = "Selected Date: " + day;
 }
 
-// 🔥 Get full schedule from planner
+// 🔥 Get full schedule
 let fullSchedule = JSON.parse(localStorage.getItem("fullSchedule")) || [];
 
 let today = new Date();
 let selectedDate = new Date(today.getFullYear(), today.getMonth(), day);
 
-// 🔍 Find matching date
 let matched = fullSchedule.find(item => {
     let d = new Date(item.date);
     return d.getDate() == selectedDate.getDate() &&
@@ -132,7 +131,15 @@ document.getElementById("totalHours").value = totalHours;
 
 // ➕ Add session
 function addSession(){
+
     sessionCount++;
+
+    sessionsData.push({
+        pdfs: [],
+        videos: []
+    });
+
+    let index = sessionCount - 1;
 
     let div = document.createElement("div");
     div.className = "session-box";
@@ -152,7 +159,7 @@ function addSession(){
                 <span>Upload:</span>
 
                 <div>
-                    <input type="file" accept=".pdf" onchange="countDocs(this)">
+                    <input type="file" accept=".pdf" multiple onchange="handlePDF(event, ${index})">
                     <div class="docCount">0</div>
                 </div>
 
@@ -162,12 +169,12 @@ function addSession(){
                 </div>
 
                 <input type="text" placeholder="paste video link">
-                <button onclick="addVideo(this)">Add video</button>
+                <button onclick="addVideo(this, ${index})">Add video</button>
             </div>
         </div>
 
         <div class="buttons">
-            <button onclick="startStudy(this)">Start Study</button>
+            <button onclick="startStudy(${index})">Start Study</button>
             <button onclick="markStudied(this)">Mark as studied</button>
         </div>
     `;
@@ -176,7 +183,74 @@ function addSession(){
 }
 
 
-// 📊 Calculate planned hours
+// 📁 HANDLE PDF
+function handlePDF(event, index){
+
+    let files = event.target.files;
+
+    for(let file of files){
+        sessionsData[index].pdfs.push(URL.createObjectURL(file));
+    }
+
+    event.target.parentElement.querySelector(".docCount").innerText =
+        sessionsData[index].pdfs.length;
+}
+
+
+// 🎥 ADD VIDEO
+function addVideo(btn, index){
+
+    let parent = btn.parentElement;
+    let input = parent.querySelector("input[type='text']");
+    let countDiv = parent.querySelector(".videoCount");
+
+    if(input.value.trim() !== ""){
+
+        let video = input.value.replace("watch?v=", "embed/");
+
+        sessionsData[index].videos.push(video);
+
+        countDiv.innerText = sessionsData[index].videos.length;
+
+        input.value = "";
+    }
+}
+
+
+// ▶️ START STUDY (MAIN FEATURE 🔥)
+function startStudy(index){
+
+    let session = sessionsData[index];
+
+    if(session.pdfs.length === 0 && session.videos.length === 0){
+        alert("Add PDF or Video first");
+        return;
+    }
+
+    // 🔥 SAVE FOR FOCUS MODE
+    localStorage.setItem("focusSession", JSON.stringify(session));
+
+    // 🔥 STORE IN 10-DAY STORAGE
+    let allSessions = JSON.parse(localStorage.getItem("allSessions")) || [];
+
+    allSessions.push({
+        date: selectedDate.toISOString(),
+        data: session,
+        created_at: Date.now()
+    });
+
+    // limit 10 days
+    allSessions = allSessions.filter(s =>
+        Date.now() - s.created_at <= (10 * 24 * 60 * 60 * 1000)
+    );
+
+    localStorage.setItem("allSessions", JSON.stringify(allSessions));
+
+    window.location.href = "/focus";
+}
+
+
+// 📊 HOURS CALCULATION (same)
 function updateHours(){
     let total = 0;
 
@@ -207,32 +281,7 @@ function updateHours(){
 }
 
 
-// 📁 PDF count
-function countDocs(input){
-    let count = input.files.length;
-    input.parentElement.querySelector(".docCount").innerText = count;
-}
-
-
-// 🎥 Video count
-function addVideo(btn){
-    let parent = btn.parentElement;
-    let input = parent.querySelector("input[type='text']");
-    let countDiv = parent.querySelector(".videoCount");
-
-    if(input.value.trim() !== ""){
-        countDiv.innerText = +countDiv.innerText + 1;
-        input.value = "";
-    }
-}
-
-
-// ▶️ Buttons
-function startStudy(btn){
-    btn.innerText = "Studying...";
-    btn.style.background = "lightgreen";
-}
-
+// mark studied (same)
 function markStudied(btn){
     btn.innerText = "Completed";
     btn.style.background = "lightblue";

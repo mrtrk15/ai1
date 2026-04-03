@@ -10,6 +10,9 @@ app = Flask(__name__)
 @app.route("/")
 def home():
     return render_template("index.html")
+@app.route("/schedule")
+def schedule():
+    return render_template("schedule.html")
 
 @app.route("/predict")
 def predict():
@@ -26,6 +29,12 @@ def planner():
 @app.route("/result")
 def result():
     return render_template("result.html")
+@app.route("/sessions")
+def sessions():
+    return render_template("study_sessions.html")
+@app.route("/focus")
+def focus():
+    return render_template("focus.html")
 
 
 # ------------------ PREDICTION API ------------------

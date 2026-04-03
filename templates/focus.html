@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Focus Mode</title>
+
+    <style>
+        body {
+            margin: 0;
+            background: black;
+            color: white;
+            font-family: 'Segoe UI';
+            overflow: hidden;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            height: 100vh;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .side {
+            display: flex;
+            flex-direction: column;
+            background: #111;
+        }
+
+        .timer {
+            text-align: center;
+            font-size: 40px;
+            padding: 20px;
+        }
+
+        .controls {
+            text-align: center;
+        }
+
+        button {
+            padding: 10px 15px;
+            margin: 5px;
+            border: none;
+            background: #4a6fb3;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .nav {
+            text-align: center;
+            padding: 10px;
+        }
+
+        .exit {
+            background: red;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- LEFT: CONTENT -->
+    <div id="contentViewer"></div>
+
+    <!-- RIGHT: PANEL -->
+    <div class="side">
+
+        <div class="timer" id="timer">25:00</div>
+
+        <div class="controls">
+            <button onclick="start()">Start</button>
+            <button onclick="pause()">Pause</button>
+            <button onclick="reset()">Reset</button>
+        </div>
+
+        <div class="nav">
+            <button onclick="prev()">⬅ Prev</button>
+            <button onclick="next()">Next ➡</button>
+        </div>
+
+        <div class="nav">
+            <button class="exit" onclick="exitFocus()">Exit</button>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+// 🔥 LOAD SESSION FROM STORAGE
+let session = JSON.parse(localStorage.getItem("focusSession"));
+
+let contents = [];
+let currentIndex = 0;
+
+// Build content list
+if(session){
+
+    // PDFs
+    if(session.pdfs){
+        session.pdfs.forEach(p => {
+            contents.push({ type: "pdf", value: p });
+        });
+    }
+
+    // Videos
+    if(session.videos){
+        session.videos.forEach(v => {
+            contents.push({ type: "youtube", value: v });
+        });
+    }
+}
+
+// 🔥 LOAD CONTENT
+function loadContent(){
+
+    let viewer = document.getElementById("contentViewer");
+
+    if(contents.length === 0){
+        viewer.innerHTML = "<h2 style='text-align:center'>No content available</h2>";
+        return;
+    }
+
+    let content = contents[currentIndex];
+
+    if(content.type === "pdf"){
+        viewer.innerHTML = `<iframe src="${content.value}"></iframe>`;
+    }
+
+    if(content.type === "youtube"){
+        viewer.innerHTML = `<iframe src="${content.value}" allowfullscreen></iframe>`;
+    }
+}
+
+// NAVIGATION
+function next(){
+    if(currentIndex < contents.length - 1){
+        currentIndex++;
+        loadContent();
+    }
+}
+
+function prev(){
+    if(currentIndex > 0){
+        currentIndex--;
+        loadContent();
+    }
+}
+
+// 🔥 FULLSCREEN
+document.documentElement.requestFullscreen();
+
+// TIMER
+let time = 25 * 60;
+let interval = null;
+
+function update(){
+    let m = Math.floor(time / 60);
+    let s = time % 60;
+
+    document.getElementById("timer").innerText =
+        String(m).padStart(2,'0') + ":" + String(s).padStart(2,'0');
+}
+
+function start(){
+    if(interval) return;
+
+    interval = setInterval(()=>{
+        if(time > 0){
+            time--;
+            update();
+        } else {
+            clearInterval(interval);
+            alert("Session Completed 🎉");
+        }
+    },1000);
+}
+
+function pause(){
+    clearInterval(interval);
+    interval = null;
+}
+
+function reset(){
+    clearInterval(interval);
+    interval = null;
+    time = 25 * 60;
+    update();
+}
+
+// EXIT
+function exitFocus(){
+    if(document.exitFullscreen){
+        document.exitFullscreen();
+    }
+    window.history.back();
+}
+
+// INITIAL LOAD
+loadContent();
+
+</script>
+
+</body>
+</html>
